@@ -7,12 +7,40 @@ from PIL import Image
 # Set Tesseract OCR executable path if not in the system PATH
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
+def deskew(image):
+    # Convert to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Threshold the image
+    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    # Find contours and the bounding box
+    coords = np.column_stack(np.where(binary > 0))
+    angle = cv2.minAreaRect(coords)[-1]
+
+    # Adjust the angle
+    if angle < -45:
+        angle = -(90 + angle)
+    else:
+        angle = -angle
+
+    # Rotate the image to deskew
+    (h, w) = image.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+    rotated = cv2.warpAffine(image, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+
+    return rotated
+
 def enhance_text(image_path):
     # Read the image
     image = cv2.imread(image_path)
 
+    # Deskew the image
+    deskewed_image = deskew(image)
+
     # Convert the image to grayscale
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(deskewed_image, cv2.COLOR_BGR2GRAY)
 
     # Apply thresholding to binarize the image
     _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
@@ -25,7 +53,7 @@ def enhance_text(image_path):
     binary_bgr = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
 
     # Apply the inverted binary mask to the original image
-    enhanced_image = cv2.bitwise_and(image, binary_bgr)
+    enhanced_image = cv2.bitwise_and(deskewed_image, binary_bgr)
 
     # Convert all other regions to white
     enhanced_image[binary == 0] = [255, 255, 255]

@@ -58,7 +58,10 @@ def enhance_text(image_path):
     # Convert all other regions to white
     enhanced_image[binary == 0] = [255, 255, 255]
 
-    return enhanced_image
+    # return enhanced_image
+    enhanced_image_pil = Image.fromarray(cv2.cvtColor(enhanced_image, cv2.COLOR_BGR2RGB))
+
+    return enhanced_image_pil
 
 def process_image(image_path):
     # Open the image using PIL
@@ -80,13 +83,22 @@ def main():
             print(f"\nProcessing {filename}:")
             print("-" * 30)
             try:
-                # Enhance the text in the image
-                enhanced_image = enhance_text(image_path)
-                enhanced_image_path = os.path.join(scanned_images_dir, f"enhanced_{filename}")
-                cv2.imwrite(enhanced_image_path, enhanced_image)
+                # # Enhance the text in the image
+                # enhanced_image = enhance_text(image_path)
+                # enhanced_image_path = os.path.join(scanned_images_dir, f"enhanced_{filename}")
+                # cv2.imwrite(enhanced_image_path, enhanced_image)
 
+                # # Perform OCR on the enhanced image
+                # text_content = process_image(enhanced_image_path)
+
+               
+                image = cv2.imread(image_path)
+                
+                # Enhance the text in the image
+                enhanced_image_pil = enhance_text(image)
+                
                 # Perform OCR on the enhanced image
-                text_content = process_image(enhanced_image_path)
+                text_content = process_image(enhanced_image_pil)
                 print("Recognized text:")
                 print(text_content.strip())
             except pytesseract.TesseractError as e:

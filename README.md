@@ -13,4 +13,6 @@ As Nepali citizenship follows Devanagari scripts, I have used Tesseract with "Hi
 
 
 4. Make sure you have made the directories: "scanned_images" and "ocr_results"
-5.     963
+5. Also make sure your certificate image is inside the directory "scanned_images"
+
+   Finally, the result can be dislayed in the console and also in the generated txt file inside "ocr_results"
